@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArtworkCard from '../components/ArtworkCard.astro';
+import GalleryLightbox from '../components/GalleryLightbox.astro';
+import { galleryWorks } from '../data/artworks';
+---
+
+<BaseLayout
+  title="Gallery"
+  description="Browse the full collection of paintings and mixed media works by Joana Antunes."
+>
+  <header class="page-mast gallery-mast">
+    <div class="container gallery-mast__inner">
+      <h1 class="heading-xl gallery-mast__title">Gallery</h1>
+      <div class="divider" aria-hidden="true"></div>
+      <div class="page-mast__notes">
+        <p class="lead">A curated selection of recent paintings and studies.</p>
+        <p class="page-mast__note">
+          For availability, commissions, or purchase enquiries, please
+          <a href="/contact" class="link-underline">get in touch</a>.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--tight gallery-section">
+    <div class="container">
+      <div class="gallery__grid">
+        {galleryWorks.map((artwork, index) => (
+          <ArtworkCard artwork={artwork} lightboxIndex={index} index={index + 1} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <GalleryLightbox works={galleryWorks} />
+</BaseLayout>
+
+<style>
+  .gallery-mast {
+    padding-block: clamp(3.25rem, 8vw, 6rem) clamp(2.25rem, 5vw, 3.25rem);
+  }
+
+  .gallery-mast__inner {
+    max-width: 46rem;
+  }
+
+  .gallery-mast__title {
+    font-size: clamp(2.85rem, 6vw, 4.5rem);
+  }
+
+  .page-mast .divider {
+    margin-block: 1.2rem 0;
+  }
+
+  .page-mast__notes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+
+  .page-mast__notes .lead {
+    margin-top: 0;
+    max-width: 30ch;
+    font-size: clamp(1.05rem, 1.7vw, 1.18rem);
+    line-height: 1.75;
+  }
+
+  .page-mast__note {
+    font-size: var(--text-sm);
+    line-height: 1.75;
+    color: var(--color-text-muted);
+  }
+
+  .page-mast__note a {
+    color: var(--color-text);
+  }
+
+  .gallery-section {
+    padding-top: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  @media (max-width: 640px) {
+    .gallery-mast {
+      padding-block: clamp(2.75rem, 12vw, 4rem) clamp(2rem, 8vw, 2.75rem);
+    }
+
+    .gallery-mast__title {
+      font-size: clamp(2.65rem, 14vw, 3.75rem);
+    }
+
+    .page-mast__notes {
+      max-width: 22rem;
+    }
+
+    .page-mast__note {
+      max-width: 30ch;
+      margin-inline: auto;
+    }
+  }
+
+  .gallery__grid {
+    display: grid;
+    gap: clamp(3rem, 6vw, 5rem) clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  @media (max-width: 639px) {
+    .gallery__grid {
+      gap: 2.75rem;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .gallery__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .gallery__grid {
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: clamp(2rem, 4vw, 3rem);
+    }
+  }
+</style>

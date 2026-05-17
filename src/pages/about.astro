@@ -1,0 +1,160 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { aboutImage } from '../data/artworks';
+---
+
+<BaseLayout
+  title="About"
+  description="Learn about Joana Antunes — artist statement, background, and exhibition history."
+>
+  <section class="about section">
+    <div class="container about__grid">
+      <figure class="about__visual image-frame">
+        <img
+          src={aboutImage}
+          alt="Joana Antunes in her studio"
+          width="1179"
+          height="1445"
+          loading="lazy"
+        />
+      </figure>
+      <div class="about__content">
+        <p class="eyebrow">The Artist</p>
+        <h1 class="heading-xl about__title">Joana Antunes</h1>
+        <div class="divider about__rule" aria-hidden="true"></div>
+        <p class="about__text">
+          Based in Devon, Joana Antunes creates contemplative works that balance restraint
+          with emotional depth. Her practice spans oil painting, drawing, and mixed media,
+          often drawing from coastal landscapes and the interplay of light on water.
+        </p>
+        <p class="about__text">
+          After studying at the Faculty of Fine Arts in Porto, she has exhibited across
+          Portugal and Europe. Her work is held in private collections in London, Paris,
+          and New York.
+        </p>
+
+        <h2 class="heading-md about__subtitle">Exhibitions</h2>
+        <ul class="about__list">
+          <li><span class="caption">Mar 2026</span> New Bath Arts Club</li>
+          <li><span class="caption">Jun 2026</span> Peirson &amp; Peirson Contemporary Art Prize</li>
+        </ul>
+
+        <a href="/contact" class="btn about__cta">Enquire</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about__grid {
+    display: grid;
+    gap: clamp(4rem, 8vw, 6rem);
+    align-items: start;
+  }
+
+  @media (min-width: 960px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+      gap: clamp(4rem, 10vw, 8rem);
+    }
+  }
+
+  .about__visual {
+    aspect-ratio: 4 / 5;
+    max-width: 26rem;
+    margin: 0;
+  }
+
+  @media (min-width: 960px) {
+    .about__visual {
+      position: sticky;
+      top: calc(var(--header-height) + 2.5rem);
+    }
+  }
+
+  .about__title {
+    margin-top: 0.5rem;
+    font-weight: 300;
+  }
+
+  .about__rule {
+    margin-block: 1.75rem 0;
+    margin-inline: 0;
+  }
+
+  .about__text {
+    color: var(--color-text-muted);
+    margin-top: 1.5rem;
+    max-width: 48ch;
+  }
+
+  .about__subtitle {
+    margin-top: 3rem;
+    margin-bottom: 0.75rem;
+    font-weight: 400;
+  }
+
+  .about__list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--color-text-muted);
+    margin-top: 1rem;
+  }
+
+  .about__list span {
+    display: inline-block;
+    min-width: 3.25rem;
+    margin-right: 0.75rem;
+    color: var(--color-text-faint);
+  }
+
+  .about__cta {
+    margin-top: 3rem;
+  }
+
+  @media (max-width: 640px) {
+    .about__grid {
+      gap: 2.75rem;
+    }
+
+    .about__visual {
+      width: min(100%, 22rem);
+      max-width: none;
+      margin-inline: auto;
+    }
+
+    .about__title {
+      margin-top: 0.35rem;
+    }
+
+    .about__rule {
+      margin-block-start: 1.25rem;
+    }
+
+    .about__text {
+      margin-top: 1.25rem;
+      max-width: 34rem;
+    }
+
+    .about__subtitle {
+      margin-top: 2.25rem;
+    }
+
+    .about__list {
+      gap: 0.85rem;
+    }
+
+    .about__list span {
+      display: block;
+      margin-right: 0;
+      margin-bottom: 0.15rem;
+    }
+
+    .about__cta {
+      margin-top: 2.25rem;
+      max-width: 16rem;
+    }
+  }
+</style>

@@ -1,0 +1,167 @@
+---
+import type { Artwork } from '../data/artworks';
+
+interface Props {
+  artwork: Artwork;
+  showMeta?: boolean;
+  lightboxIndex?: number;
+  index?: number;
+}
+
+const { artwork, showMeta = true, lightboxIndex, index } = Astro.props;
+const isLightbox = lightboxIndex !== undefined;
+const frameStyle =
+  artwork.imageWidth && artwork.imageHeight
+    ? `--artwork-aspect-ratio: ${artwork.imageWidth} / ${artwork.imageHeight};`
+    : undefined;
+---
+
+<article class="card">
+  {
+    isLightbox ? (
+      <button
+        type="button"
+        class="card__trigger image-frame"
+        data-lightbox-index={lightboxIndex}
+        aria-label={`View ${artwork.title} full screen`}
+        style={frameStyle}
+      >
+        <img
+          src={artwork.image}
+          alt={artwork.title}
+          width={artwork.imageWidth ?? 600}
+          height={artwork.imageHeight ?? 750}
+          loading="lazy"
+        />
+      </button>
+    ) : (
+      <a href="/gallery" class="card__link">
+        <div class="card__frame image-frame" style={frameStyle}>
+          <img
+            src={artwork.image}
+            alt={artwork.title}
+            width={artwork.imageWidth ?? 600}
+            height={artwork.imageHeight ?? 750}
+            loading="lazy"
+          />
+        </div>
+      </a>
+    )
+  }
+  {
+    showMeta && (
+      <footer class="card__meta">
+        {isLightbox ? (
+          <button
+            type="button"
+            class="card__meta-btn"
+            data-lightbox-index={lightboxIndex}
+            aria-label={`View ${artwork.title} full screen`}
+          >
+            <h3 class="card__title">{artwork.title}</h3>
+            <p class="card__details caption">{artwork.medium} · {artwork.year}</p>
+          </button>
+        ) : (
+          <>
+            <h3 class="card__title">{artwork.title}</h3>
+            <p class="card__details caption">{artwork.medium} · {artwork.year}</p>
+          </>
+        )}
+      </footer>
+    )
+  }
+</article>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .card__frame,
+  .card__trigger {
+    aspect-ratio: var(--artwork-aspect-ratio, 4 / 5);
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: block;
+    text-align: left;
+  }
+
+  .card .card__trigger img,
+  .card .card__frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .card__link {
+    display: block;
+  }
+
+  .card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-top: 0.15rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .card__meta-btn {
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    width: 100%;
+  }
+
+  .card__title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.2;
+    transition: color var(--transition);
+  }
+
+  .card:hover .card__title,
+  .card__meta-btn:hover .card__title {
+    color: var(--color-accent);
+  }
+
+  .card__details {
+    color: var(--color-text-faint);
+  }
+
+  @media (max-width: 640px) {
+    .card {
+      gap: 1rem;
+    }
+
+    .card__trigger,
+    .card__link {
+      min-height: 2.75rem;
+    }
+
+    .card__meta {
+      gap: 0.25rem;
+      padding-top: 0.75rem;
+    }
+
+    .card__meta-btn {
+      min-height: 2.75rem;
+    }
+
+    .card__title {
+      font-size: 1.375rem;
+    }
+
+    .card__details {
+      line-height: 1.5;
+    }
+  }
+</style>

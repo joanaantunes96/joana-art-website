@@ -1,0 +1,167 @@
+---
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+---
+
+<section class:list={['newsletter', { 'newsletter--compact': compact }]}>
+  <div class="container newsletter__inner">
+    <div class="newsletter__copy">
+      <p class="eyebrow">Studio list</p>
+      <h2 class="heading-lg newsletter__title">Join the studio list</h2>
+      <p class="newsletter__text">
+        Occasional updates on new works, exhibitions, and available pieces.
+      </p>
+    </div>
+
+    <form class="newsletter__form" action="https://formspree.io/f/mdajnyon" method="POST" data-newsletter-form>
+      <input type="hidden" name="form-type" value="newsletter" />
+      <label class="sr-only" for={compact ? 'newsletter-email-contact' : 'newsletter-email'}>
+        Email address
+      </label>
+      <input
+        id={compact ? 'newsletter-email-contact' : 'newsletter-email'}
+        type="email"
+        name="email"
+        placeholder="Email address"
+        required
+        autocomplete="email"
+      />
+      <button type="submit" class="btn">Sign up</button>
+      <p class="newsletter__note caption" data-newsletter-status aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('[data-newsletter-form]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      if (!(form instanceof HTMLFormElement)) return;
+
+      const status = form.querySelector('[data-newsletter-status]');
+      if (status instanceof HTMLElement) {
+        status.textContent = 'Newsletter signup will be connected soon.';
+      }
+    });
+  });
+</script>
+
+<style>
+  .newsletter {
+    padding-block: clamp(4rem, 9vw, 6.5rem);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .newsletter--compact {
+    padding-block: 0 clamp(4rem, 9vw, 6rem);
+    border-top: none;
+  }
+
+  .newsletter__inner {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: end;
+  }
+
+  .newsletter:not(.newsletter--compact) .newsletter__inner {
+    max-width: 58rem;
+  }
+
+  @media (min-width: 820px) {
+    .newsletter__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.85fr);
+    }
+  }
+
+  .newsletter--compact .newsletter__inner {
+    max-width: 58rem;
+  }
+
+  .newsletter__title {
+    margin-top: 0.75rem;
+  }
+
+  .newsletter__text {
+    max-width: 34ch;
+    margin-top: 1rem;
+    color: var(--color-text-muted);
+    line-height: var(--leading-body);
+  }
+
+  .newsletter__form {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  @media (min-width: 560px) {
+    .newsletter__form {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+    }
+  }
+
+  .newsletter__form input {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-elevated);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    transition:
+      border-color var(--transition),
+      box-shadow var(--transition);
+  }
+
+  .newsletter__form input:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  .newsletter__form input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent);
+  }
+
+  .newsletter__form .btn {
+    white-space: nowrap;
+  }
+
+  .newsletter__note {
+    color: var(--color-text-faint);
+  }
+
+  @media (min-width: 560px) {
+    .newsletter__note {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .newsletter {
+      padding-block: clamp(3rem, 12vw, 4.5rem);
+    }
+
+    .newsletter--compact {
+      padding-block: 0 clamp(3.25rem, 12vw, 4.5rem);
+    }
+
+    .newsletter__inner {
+      gap: 1.75rem;
+    }
+
+    .newsletter__title {
+      margin-top: 0.5rem;
+    }
+
+    .newsletter__text {
+      margin-top: 0.85rem;
+    }
+  }
+</style>
