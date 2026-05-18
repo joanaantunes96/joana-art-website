@@ -6,12 +6,12 @@ const navItems = [
   { href: '/contact', label: 'Contact' },
 ];
 
-const currentPath = Astro.url.pathname;
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
 
 <header class="header">
   <div class="header__inner container">
-    <a href="/" class="header__logo" aria-label="Joana Antunes Fine Art — Home">
+    <a href="/" class="header__logo" aria-label="Joana Antunes Fine Art - Home">
       <span class="header__wordmark">
         <span class="header__name">Joana Antunes</span>
         <span class="header__descriptor">Fine Art</span>
@@ -37,6 +37,7 @@ const currentPath = Astro.url.pathname;
               <a
                 href={href}
                 class:list={['header__link', { 'is-active': currentPath === href }]}
+                aria-current={currentPath === href ? 'page' : undefined}
               >
                 {label}
               </a>

@@ -5,15 +5,23 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title: string;
   description?: string;
+  image?: string;
+  canonicalPath?: string;
 }
 
 const {
   title,
-  description = 'Contemporary fine art by Joana Antunes — paintings, drawings, and mixed media.',
+  description = 'Contemporary fine art by Joana Antunes - paintings, drawings, and mixed media.',
+  image = '/images/hero.jpg',
+  canonicalPath,
 } = Astro.props;
 
 const siteTitle = 'Joana Antunes Fine Art';
-const pageTitle = title === 'Home' ? siteTitle : `${title} — ${siteTitle}`;
+const pageTitle = title === 'Home' ? siteTitle : `${title} - ${siteTitle}`;
+const canonicalUrl = new URL(canonicalPath ?? Astro.url.pathname, Astro.site ?? Astro.url);
+const socialImageUrl = new URL(image, canonicalUrl);
+const canonicalHref = canonicalUrl.href;
+const socialImageHref = socialImageUrl.href;
 ---
 
 <!doctype html>
@@ -22,13 +30,27 @@ const pageTitle = title === 'Home' ? siteTitle : `${title} — ${siteTitle}`;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalHref} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" sizes="any" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Manrope:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <meta property="og:site_name" content={siteTitle} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalHref} />
+    <meta property="og:image" content={socialImageHref} />
+    <meta property="og:image:alt" content="Featured artwork by Joana Antunes" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageHref} />
     <title>{pageTitle}</title>
   </head>
   <body>

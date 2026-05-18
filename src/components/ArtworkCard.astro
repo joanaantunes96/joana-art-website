@@ -14,6 +14,7 @@ const frameStyle =
   artwork.imageWidth && artwork.imageHeight
     ? `--artwork-aspect-ratio: ${artwork.imageWidth} / ${artwork.imageHeight};`
     : undefined;
+const imageAlt = `${artwork.title}, ${artwork.medium} by Joana Antunes`;
 ---
 
 <article class="card">
@@ -28,7 +29,7 @@ const frameStyle =
       >
         <img
           src={artwork.image}
-          alt={artwork.title}
+          alt={imageAlt}
           width={artwork.imageWidth ?? 600}
           height={artwork.imageHeight ?? 750}
           loading="lazy"
@@ -39,7 +40,7 @@ const frameStyle =
         <div class="card__frame image-frame" style={frameStyle}>
           <img
             src={artwork.image}
-            alt={artwork.title}
+            alt={imageAlt}
             width={artwork.imageWidth ?? 600}
             height={artwork.imageHeight ?? 750}
             loading="lazy"
