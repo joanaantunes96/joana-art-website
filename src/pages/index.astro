@@ -9,11 +9,7 @@ import { featuredWorks, heroImage } from '../data/artworks';
   <section class="hero">
     <div class="hero__inner container">
       <div class="hero__content">
-        <p class="eyebrow">Contemporary Fine Art</p>
-        <h1 class="heading-xl hero__title">
-          Paintings of<br />
-          <em>fleeting</em> moments
-        </h1>
+        <h1 class="hero__statement">Contemporary Fine Art</h1>
         <div class="divider hero__rule" aria-hidden="true"></div>
         <p class="lead hero__lead">
           Original oil paintings inspired by the beauty found in the natural world —
@@ -89,19 +85,22 @@ import { featuredWorks, heroImage } from '../data/artworks';
     }
   }
 
-  .hero__title em {
-    font-style: italic;
-    font-weight: 400;
+  .hero__statement {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4.2vw, 3.1rem);
+    font-weight: 300;
+    line-height: 1.18;
+    letter-spacing: 0;
     color: var(--color-accent);
   }
 
   .hero__rule {
-    margin-block: 1.75rem 0;
+    margin-block: 1.5rem 0;
     margin-inline: 0;
   }
 
   .hero__lead {
-    margin-top: 1.75rem;
+    margin-top: 1.45rem;
   }
 
   .hero__actions {
@@ -207,6 +206,10 @@ import { featuredWorks, heroImage } from '../data/artworks';
 
     .hero__rule {
       margin-block-start: 1.25rem;
+    }
+
+    .hero__statement {
+      font-size: clamp(2rem, 10vw, 2.75rem);
     }
 
     .hero__lead {
