@@ -51,6 +51,13 @@ const socialImageHref = socialImageUrl.href;
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={socialImageHref} />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-D9WNSZNQ2S"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-D9WNSZNQ2S');
+    </script>
     <title>{pageTitle}</title>
   </head>
   <body>
