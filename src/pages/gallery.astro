@@ -19,12 +19,6 @@ import { galleryWorks } from '../data/artworks';
           For availability, commissions, or purchase enquiries, please
           <a href="/contact" class="link-underline">get in touch</a>.
         </p>
-        <div class="page-mast__actions">
-          <a href="/contact" class="btn">Enquire</a>
-          <a href="/collectors-list" class="link-underline page-mast__secondary">
-            Join Collectors' List
-          </a>
-        </div>
       </div>
     </div>
   </header>
@@ -85,23 +79,6 @@ import { galleryWorks } from '../data/artworks';
     color: var(--color-text);
   }
 
-  .page-mast__actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 1.25rem;
-  }
-
-  .page-mast__secondary {
-    font-size: var(--text-xs);
-    font-weight: 500;
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-  }
-
   .gallery-section {
     padding-top: clamp(2.5rem, 6vw, 4rem);
   }
@@ -122,19 +99,6 @@ import { galleryWorks } from '../data/artworks';
     .page-mast__note {
       max-width: 30ch;
       margin-inline: auto;
-    }
-
-    .page-mast__actions {
-      flex-direction: column;
-      gap: 0.85rem;
-      max-width: 18rem;
-      margin-inline: auto;
-    }
-
-    .page-mast__secondary {
-      min-height: 2.75rem;
-      display: inline-flex;
-      align-items: center;
     }
   }
 
