@@ -20,7 +20,8 @@ import { featuredWorks, heroImage } from '../data/artworks';
         </p>
         <div class="hero__actions">
           <a href="/gallery" class="btn">View Gallery</a>
-          <a href="/about" class="link-underline hero__secondary">The Artist</a>
+          <a href="/collectors-list" class="link-underline hero__secondary">Join Collectors' List</a>
+          <a href="/contact" class="link-underline hero__secondary">Enquire</a>
         </div>
       </div>
       <figure class="hero__figure image-frame">
@@ -38,8 +39,12 @@ import { featuredWorks, heroImage } from '../data/artworks';
   <section class="section featured-section">
     <div class="container">
       <header class="featured__header">
-        <p class="eyebrow">On View</p>
-        <h2 class="heading-lg">Selected works</h2>
+        <p class="eyebrow">Latest Work</p>
+        <h2 class="heading-lg">Available and recent paintings</h2>
+        <p class="featured__intro">
+          A first look at recent pieces from the studio. For availability, commissions,
+          or to ask about a work, please get in touch.
+        </p>
       </header>
       <div class="featured__grid">
         {featuredWorks.map((artwork, index) => (
@@ -49,6 +54,32 @@ import { featuredWorks, heroImage } from '../data/artworks';
       <p class="featured__more">
         <a href="/gallery" class="link-underline">View full collection</a>
       </p>
+    </div>
+  </section>
+
+  <section class="collector-paths section">
+    <div class="container collector-paths__inner">
+      <header class="collector-paths__header">
+        <p class="eyebrow">For Collectors</p>
+        <h2 class="heading-lg">Ways to follow the work</h2>
+      </header>
+      <div class="collector-paths__grid">
+        <a href="/gallery" class="collector-path">
+          <span class="collector-path__label caption">Originals</span>
+          <h3 class="collector-path__title">Browse paintings</h3>
+          <p>View recent works and studies, with enquiries welcomed for availability.</p>
+        </a>
+        <a href="/contact" class="collector-path">
+          <span class="collector-path__label caption">Commissions</span>
+          <h3 class="collector-path__title">Start a conversation</h3>
+          <p>For commissions, studio visits, or questions about a particular piece.</p>
+        </a>
+        <a href="/collectors-list" class="collector-path">
+          <span class="collector-path__label caption">Studio Notes</span>
+          <h3 class="collector-path__title">Join the collectors' list</h3>
+          <p>Hear about new paintings, available work, and occasional studio updates.</p>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -138,6 +169,13 @@ import { featuredWorks, heroImage } from '../data/artworks';
     margin-bottom: 1rem;
   }
 
+  .featured__intro {
+    max-width: 42rem;
+    margin: 1.15rem auto 0;
+    color: var(--color-text-muted);
+    line-height: var(--leading-body);
+  }
+
   .featured__grid {
     display: grid;
     gap: clamp(2.5rem, 5vw, 4rem);
@@ -163,6 +201,66 @@ import { featuredWorks, heroImage } from '../data/artworks';
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--color-text-muted);
+  }
+
+  .collector-paths {
+    background: var(--color-bg);
+  }
+
+  .collector-paths__inner {
+    display: grid;
+    gap: clamp(2.75rem, 6vw, 4.5rem);
+  }
+
+  @media (min-width: 920px) {
+    .collector-paths__inner {
+      grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+      align-items: start;
+    }
+  }
+
+  .collector-paths__header .eyebrow {
+    margin-bottom: 1rem;
+  }
+
+  .collector-paths__grid {
+    display: grid;
+    gap: 1px;
+    border-block: 1px solid var(--color-border);
+  }
+
+  .collector-path {
+    display: grid;
+    gap: 0.65rem;
+    padding-block: clamp(1.5rem, 3vw, 2rem);
+    border-bottom: 1px solid var(--color-border);
+    transition: color var(--transition);
+  }
+
+  .collector-path:last-child {
+    border-bottom: none;
+  }
+
+  .collector-path:hover,
+  .collector-path:focus-visible {
+    color: var(--color-accent);
+  }
+
+  .collector-path__label {
+    color: var(--color-text-faint);
+  }
+
+  .collector-path__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+    font-weight: 400;
+    line-height: 1.18;
+  }
+
+  .collector-path p {
+    max-width: 38rem;
+    color: var(--color-text-muted);
+    line-height: var(--leading-body);
   }
 
   .statement__inner {
@@ -239,12 +337,20 @@ import { featuredWorks, heroImage } from '../data/artworks';
       margin-bottom: 2.5rem;
     }
 
+    .featured__intro {
+      margin-top: 1rem;
+    }
+
     .featured__grid {
       gap: 2.75rem;
     }
 
     .featured__more {
       margin-top: 2.5rem;
+    }
+
+    .collector-path {
+      padding-block: 1.35rem;
     }
 
     .statement__inner .divider {
