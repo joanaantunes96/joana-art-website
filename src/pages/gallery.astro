@@ -27,7 +27,7 @@ import { galleryWorks } from '../data/artworks';
     <div class="container">
       <div class="gallery__grid">
         {galleryWorks.map((artwork, index) => (
-          <ArtworkCard artwork={artwork} lightboxIndex={index} index={index + 1} />
+          <ArtworkCard artwork={artwork} lightboxIndex={index} index={index + 1} showMeta={false} />
         ))}
       </div>
     </div>

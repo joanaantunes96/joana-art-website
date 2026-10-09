@@ -3,19 +3,17 @@ import type { Artwork } from '../data/artworks';
 
 interface Props {
   works: Artwork[];
+  enquiryLabel?: string;
 }
 
-const { works } = Astro.props;
+const { works, enquiryLabel = 'Artwork enquiry' } = Astro.props;
 ---
 
 <dialog class="lightbox" id="gallery-lightbox" aria-label="Image viewer">
   <div class="lightbox__backdrop" data-close></div>
   <div class="lightbox__panel">
     <header class="lightbox__header">
-      <div class="lightbox__meta">
-        <p class="lightbox__title" id="lightbox-title"></p>
-        <p class="lightbox__details" id="lightbox-details"></p>
-      </div>
+      <a class="lightbox__enquiry" id="lightbox-enquiry" href="/contact?subject=purchase">{enquiryLabel}</a>
       <div class="lightbox__actions">
         <button type="button" class="lightbox__btn" id="lightbox-zoom-out" aria-label="Zoom out">−</button>
         <span class="lightbox__zoom-level" id="lightbox-zoom-level" aria-live="polite">100%</span>
@@ -40,16 +38,13 @@ const { works } = Astro.props;
         ›
       </button>
     </div>
-
-    <p class="lightbox__hint">Scroll or pinch to zoom · Drag to pan · Esc to close</p>
   </div>
 </dialog>
 
 <script define:vars={{ works }}>
   const dialog = document.getElementById('gallery-lightbox');
   const image = document.getElementById('lightbox-image');
-  const titleEl = document.getElementById('lightbox-title');
-  const detailsEl = document.getElementById('lightbox-details');
+  const enquiryLink = document.getElementById('lightbox-enquiry');
   const zoomLevelEl = document.getElementById('lightbox-zoom-level');
   const viewport = document.getElementById('lightbox-viewport');
   const stage = document.getElementById('lightbox-stage');
@@ -111,8 +106,13 @@ const { works } = Astro.props;
     currentIndex = index;
     image.src = work.image;
     image.alt = work.title;
-    titleEl.textContent = work.title;
-    detailsEl.textContent = `${work.medium} · ${work.year}`;
+    if (enquiryLink instanceof HTMLAnchorElement) {
+      const params = new URLSearchParams({
+        subject: 'purchase',
+        artwork: work.id,
+      });
+      enquiryLink.href = `/contact?${params.toString()}`;
+    }
     resetTransform();
   }
 
@@ -281,7 +281,6 @@ const { works } = Astro.props;
 
   .lightbox__header {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
@@ -289,16 +288,26 @@ const { works } = Astro.props;
     border-bottom: 1px solid rgba(251, 247, 238, 0.14);
   }
 
-  .lightbox__title {
-    font-family: var(--font-display);
-    font-size: 1.35rem;
-    font-weight: 400;
+  .lightbox__enquiry {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.45rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid rgba(251, 247, 238, 0.34);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    transition:
+      background var(--transition),
+      border-color var(--transition);
   }
 
-  .lightbox__details {
-    font-size: 0.8rem;
-    color: rgba(251, 247, 238, 0.68);
-    margin-top: 0.2rem;
+  .lightbox__enquiry:hover,
+  .lightbox__enquiry:focus-visible {
+    background: rgba(168, 135, 79, 0.16);
+    border-color: rgba(168, 135, 79, 0.55);
   }
 
   .lightbox__actions {
@@ -424,6 +433,20 @@ const { works } = Astro.props;
       width: 2.25rem;
       height: 2.25rem;
       font-size: 1.4rem;
+    }
+
+    .lightbox__header {
+      align-items: stretch;
+      flex-direction: column-reverse;
+      gap: 0.75rem;
+    }
+
+    .lightbox__actions {
+      justify-content: flex-end;
+    }
+
+    .lightbox__enquiry {
+      width: 100%;
     }
 
     .lightbox__btn--reset {

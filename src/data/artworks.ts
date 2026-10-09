@@ -28,10 +28,12 @@ interface GalleryImage {
 }
 
 const imagesDirectory = fileURLToPath(new URL('../../public/images/', import.meta.url));
-const numericImagePattern = /^(\d+)\.(jpe?g|png|webp)$/i;
+const galleryImagesDirectory = fileURLToPath(new URL('../../public/images/gallery/', import.meta.url));
+const supportedImagePattern = /\.(jpe?g|png|webp)$/i;
+const leadingNumberPattern = /^(\d+)/;
 
 function getImageNumber(fileName: string) {
-  return Number(fileName.match(numericImagePattern)?.[1] ?? 0);
+  return Number(fileName.match(leadingNumberPattern)?.[1] ?? Number.POSITIVE_INFINITY);
 }
 
 function readJpegDimensions(buffer: Buffer) {
@@ -160,10 +162,10 @@ function formatRomanNumber(value: number) {
   return output || String(value);
 }
 
-const galleryImages: GalleryImage[] = readdirSync(imagesDirectory, { withFileTypes: true })
-  .filter((entry) => entry.isFile() && numericImagePattern.test(entry.name))
+const galleryImages: GalleryImage[] = readdirSync(galleryImagesDirectory, { withFileTypes: true })
+  .filter((entry) => entry.isFile() && supportedImagePattern.test(entry.name))
   .map((entry) => {
-    const filePath = join(imagesDirectory, entry.name);
+    const filePath = join(galleryImagesDirectory, entry.name);
     const dimensions = readImageDimensions(filePath);
 
     return {
@@ -176,19 +178,21 @@ const galleryImages: GalleryImage[] = readdirSync(imagesDirectory, { withFileTyp
   })
   .sort((a, b) => a.number - b.number || a.fileName.localeCompare(b.fileName));
 
-export const galleryWorks: Artwork[] = galleryImages.map((image) => {
-  const id = String(image.number).padStart(2, '0');
+export const galleryWorks: Artwork[] = galleryImages.map((image, index) => {
+  const id =
+    Number.isFinite(image.number) ? String(image.number).padStart(2, '0') : image.fileName.replace(/\.[^.]+$/, '');
   const metadata = artworkMetadata[image.fileName] ?? artworkMetadata[String(image.number)] ?? {};
+  const displayNumber = Number.isFinite(image.number) ? image.number : index + 1;
 
   return {
     id,
-    title: metadata.title ?? `Untitled ${formatRomanNumber(image.number)}`,
+    title: metadata.title ?? `Untitled ${formatRomanNumber(displayNumber)}`,
     medium: metadata.medium ?? 'Fine art',
     year: metadata.year ?? 'Recent work',
     dimensions: metadata.dimensions ?? 'Dimensions available on request',
     availability: metadata.availability ?? 'Availability on request',
     description: metadata.description,
-    image: `/images/${image.fileName}`,
+    image: `/images/gallery/${image.fileName}`,
     imageWidth: image.width,
     imageHeight: image.height,
     aspect: image.aspect,

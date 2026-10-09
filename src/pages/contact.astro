@@ -73,6 +73,22 @@ import NewsletterSignup from '../components/NewsletterSignup.astro';
   const form = document.querySelector('[data-contact-form]');
   const status = document.querySelector('[data-form-status]');
 
+  if (form instanceof HTMLFormElement) {
+    const params = new URLSearchParams(window.location.search);
+    const subject = params.get('subject');
+    const artwork = params.get('artwork');
+    const subjectField = form.elements.namedItem('subject');
+    const messageField = form.elements.namedItem('message');
+
+    if (subjectField instanceof HTMLSelectElement && subject) {
+      subjectField.value = subject;
+    }
+
+    if (messageField instanceof HTMLTextAreaElement && artwork) {
+      messageField.value = `I would like to enquire about artwork ${artwork}.`;
+    }
+  }
+
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
 
