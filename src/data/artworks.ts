@@ -1,6 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { artworkMetadata } from './artworkMetadata';
 
 export interface Artwork {
@@ -11,6 +10,10 @@ export interface Artwork {
   dimensions: string;
   availability: string;
   description?: string;
+  price?: string;
+  stockQuantity?: number;
+  squareItemId?: string;
+  squareVariationId?: string;
   image: string;
   imageWidth?: number;
   imageHeight?: number;
@@ -27,10 +30,30 @@ interface GalleryImage {
   aspect: ImageAspect;
 }
 
-const imagesDirectory = fileURLToPath(new URL('../../public/images/', import.meta.url));
-const galleryImagesDirectory = fileURLToPath(new URL('../../public/images/gallery/', import.meta.url));
+const galleryImagesDirectory = join(process.cwd(), 'public', 'images', 'gallery');
 const supportedImagePattern = /\.(jpe?g|png|webp)$/i;
 const leadingNumberPattern = /^(\d+)/;
+const fallbackGalleryImageManifest = [
+  ['1.jpg', 1800, 1392],
+  ['2.jpg', 1800, 1761],
+  ['3.jpg', 1080, 810],
+  ['4.jpg', 1440, 1800],
+  ['4dc317ee-5713-49c3-ae6d-e2b587543b91.jpg', 1179, 1445],
+  ['5.jpg', 1800, 1388],
+  ['6.jpg', 1800, 1393],
+  ['7.jpg', 1800, 1800],
+  ['8.jpg', 1800, 1393],
+  ['9.jpg', 1321, 1800],
+  ['10.jpg', 1537, 1800],
+  ['11.jpg', 1800, 1287],
+  ['12.jpg', 1080, 1350],
+  ['14.jpg', 1179, 1466],
+  ['15.jpg', 1440, 1800],
+  ['16.jpg', 1800, 1290],
+  ['antunes-joana-on-the-line-2026.jpg', 1800, 1384],
+  ['d466b30b-20fa-4363-88c3-f99f99280700.jpg', 1179, 881],
+  ['img-4936.jpg', 1800, 761],
+] as const;
 
 function getImageNumber(fileName: string) {
   return Number(fileName.match(leadingNumberPattern)?.[1] ?? Number.POSITIVE_INFINITY);
@@ -125,11 +148,25 @@ function getImageAspect(filePath: string): ImageAspect {
 
   if (!dimensions) return 'square';
 
-  const ratio = dimensions.width / dimensions.height;
+  return dimensionsToAspect(dimensions.width, dimensions.height);
+}
+
+function dimensionsToAspect(width: number, height: number): ImageAspect {
+  const ratio = width / height;
 
   if (ratio > 1.15) return 'landscape';
   if (ratio < 0.87) return 'portrait';
   return 'square';
+}
+
+function getFallbackGalleryImages(): GalleryImage[] {
+  return fallbackGalleryImageManifest.map(([fileName, width, height]) => ({
+    fileName,
+    number: getImageNumber(fileName),
+    width,
+    height,
+    aspect: dimensionsToAspect(width, height),
+  }));
 }
 
 function formatRomanNumber(value: number) {
@@ -162,21 +199,30 @@ function formatRomanNumber(value: number) {
   return output || String(value);
 }
 
-const galleryImages: GalleryImage[] = readdirSync(galleryImagesDirectory, { withFileTypes: true })
-  .filter((entry) => entry.isFile() && supportedImagePattern.test(entry.name))
-  .map((entry) => {
-    const filePath = join(galleryImagesDirectory, entry.name);
-    const dimensions = readImageDimensions(filePath);
+function readGalleryImages(): GalleryImage[] {
+  try {
+    return readdirSync(galleryImagesDirectory, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && supportedImagePattern.test(entry.name))
+      .map((entry) => {
+        const filePath = join(galleryImagesDirectory, entry.name);
+        const dimensions = readImageDimensions(filePath);
 
-    return {
-      fileName: entry.name,
-      number: getImageNumber(entry.name),
-      width: dimensions?.width,
-      height: dimensions?.height,
-      aspect: getImageAspect(filePath),
-    };
-  })
-  .sort((a, b) => a.number - b.number || a.fileName.localeCompare(b.fileName));
+        return {
+          fileName: entry.name,
+          number: getImageNumber(entry.name),
+          width: dimensions?.width,
+          height: dimensions?.height,
+          aspect: getImageAspect(filePath),
+        };
+      })
+      .sort((a, b) => a.number - b.number || a.fileName.localeCompare(b.fileName));
+  } catch (error) {
+    console.error('Local gallery fallback unavailable:', error);
+    return getFallbackGalleryImages();
+  }
+}
+
+const galleryImages: GalleryImage[] = readGalleryImages();
 
 export const galleryWorks: Artwork[] = galleryImages.map((image, index) => {
   const id =

@@ -3,7 +3,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArtworkCard from '../components/ArtworkCard.astro';
 import GalleryLightbox from '../components/GalleryLightbox.astro';
 import NewsletterSignup from '../components/NewsletterSignup.astro';
-import { featuredWorks, heroImage } from '../data/artworks';
+import { heroImage } from '../data/artworks';
+import { getFeaturedWorks } from '../data/squareArtworks';
+
+export const prerender = false;
+
+const { works: featuredWorks } = await getFeaturedWorks();
 ---
 
 <BaseLayout title="Home">

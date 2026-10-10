@@ -13,6 +13,11 @@ const { works, enquiryLabel = 'Artwork enquiry' } = Astro.props;
   <div class="lightbox__backdrop" data-close></div>
   <div class="lightbox__panel">
     <header class="lightbox__header">
+      <div class="lightbox__meta" id="lightbox-meta">
+        <p class="lightbox__title" id="lightbox-title"></p>
+        <dl class="lightbox__details" id="lightbox-details"></dl>
+        <p class="lightbox__description" id="lightbox-description"></p>
+      </div>
       <a class="lightbox__enquiry" id="lightbox-enquiry" href="/contact?subject=purchase">{enquiryLabel}</a>
       <div class="lightbox__actions">
         <button type="button" class="lightbox__btn" id="lightbox-zoom-out" aria-label="Zoom out">−</button>
@@ -44,6 +49,9 @@ const { works, enquiryLabel = 'Artwork enquiry' } = Astro.props;
 <script define:vars={{ works }}>
   const dialog = document.getElementById('gallery-lightbox');
   const image = document.getElementById('lightbox-image');
+  const titleEl = document.getElementById('lightbox-title');
+  const detailsEl = document.getElementById('lightbox-details');
+  const descriptionEl = document.getElementById('lightbox-description');
   const enquiryLink = document.getElementById('lightbox-enquiry');
   const zoomLevelEl = document.getElementById('lightbox-zoom-level');
   const viewport = document.getElementById('lightbox-viewport');
@@ -106,6 +114,33 @@ const { works, enquiryLabel = 'Artwork enquiry' } = Astro.props;
     currentIndex = index;
     image.src = work.image;
     image.alt = work.title;
+    if (titleEl) titleEl.textContent = work.title;
+    if (detailsEl) {
+      const details = [
+        ['Medium', work.medium],
+        ['Dimensions', work.dimensions],
+        ['Price', work.price],
+        ['Availability', work.availability],
+      ].filter(([, value]) => Boolean(value));
+
+      detailsEl.replaceChildren(
+        ...details.map(([label, value]) => {
+          const item = document.createElement('div');
+          const term = document.createElement('dt');
+          const description = document.createElement('dd');
+
+          term.textContent = label;
+          description.textContent = value;
+          item.append(term, description);
+
+          return item;
+        }),
+      );
+    }
+    if (descriptionEl) {
+      descriptionEl.textContent = work.description || '';
+      descriptionEl.hidden = !work.description;
+    }
     if (enquiryLink instanceof HTMLAnchorElement) {
       const params = new URLSearchParams({
         subject: 'purchase',
@@ -288,7 +323,50 @@ const { works, enquiryLabel = 'Artwork enquiry' } = Astro.props;
     border-bottom: 1px solid rgba(251, 247, 238, 0.14);
   }
 
+  .lightbox__meta {
+    max-width: min(42rem, 100%);
+  }
+
+  .lightbox__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    font-weight: 400;
+    line-height: 1.15;
+  }
+
+  .lightbox__details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 1rem;
+    margin-top: 0.45rem;
+    color: rgba(251, 247, 238, 0.72);
+    font-size: 0.76rem;
+    line-height: 1.5;
+  }
+
+  .lightbox__details div {
+    display: inline-flex;
+    gap: 0.35rem;
+  }
+
+  .lightbox__details dt {
+    color: rgba(251, 247, 238, 0.52);
+  }
+
+  .lightbox__details dd {
+    margin: 0;
+  }
+
+  .lightbox__description {
+    margin-top: 0.55rem;
+    max-width: 54ch;
+    color: rgba(251, 247, 238, 0.68);
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
   .lightbox__enquiry {
+    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -437,12 +515,13 @@ const { works, enquiryLabel = 'Artwork enquiry' } = Astro.props;
 
     .lightbox__header {
       align-items: stretch;
-      flex-direction: column-reverse;
+      flex-direction: column;
       gap: 0.75rem;
     }
 
     .lightbox__actions {
       justify-content: flex-end;
+      order: -1;
     }
 
     .lightbox__enquiry {

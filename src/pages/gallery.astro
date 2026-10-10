@@ -2,7 +2,11 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArtworkCard from '../components/ArtworkCard.astro';
 import GalleryLightbox from '../components/GalleryLightbox.astro';
-import { galleryWorks } from '../data/artworks';
+import { getGalleryWorks } from '../data/squareArtworks';
+
+export const prerender = false;
+
+const { works: galleryWorks } = await getGalleryWorks();
 ---
 
 <BaseLayout
