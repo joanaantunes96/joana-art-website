@@ -2,11 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArtworkCard from '../components/ArtworkCard.astro';
 import GalleryLightbox from '../components/GalleryLightbox.astro';
-import { getGalleryWorks } from '../data/squareArtworks';
-
-export const prerender = false;
-
-const { works: galleryWorks } = await getGalleryWorks();
+import { galleryWorks } from '../data/artworks';
 ---
 
 <BaseLayout
@@ -37,7 +33,7 @@ const { works: galleryWorks } = await getGalleryWorks();
     </div>
   </section>
 
-  <GalleryLightbox works={galleryWorks} />
+  <GalleryLightbox works={galleryWorks} showDetails={false} />
 </BaseLayout>
 
 <style>

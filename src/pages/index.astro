@@ -3,12 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArtworkCard from '../components/ArtworkCard.astro';
 import GalleryLightbox from '../components/GalleryLightbox.astro';
 import NewsletterSignup from '../components/NewsletterSignup.astro';
-import { heroImage } from '../data/artworks';
-import { getFeaturedWorks } from '../data/squareArtworks';
-
-export const prerender = false;
-
-const { works: featuredWorks } = await getFeaturedWorks();
+import { featuredWorks, heroImage } from '../data/artworks';
 ---
 
 <BaseLayout title="Home">
@@ -73,7 +68,7 @@ const { works: featuredWorks } = await getFeaturedWorks();
   </section>
 
   <NewsletterSignup />
-  <GalleryLightbox works={featuredWorks} enquiryLabel="Inquire about this piece" />
+  <GalleryLightbox works={featuredWorks} enquiryLabel="Inquire about this piece" showDetails={false} />
 </BaseLayout>
 
 <style>

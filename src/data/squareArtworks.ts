@@ -1,4 +1,4 @@
-import { galleryWorks, type Artwork } from './artworks';
+import type { Artwork } from './artworks';
 
 const SQUARE_API_BASE = 'https://connect.squareup.com';
 const SQUARE_VERSION = '2026-09-16';
@@ -6,6 +6,14 @@ const SQUARE_VERSION = '2026-09-16';
 interface SquareMoney {
   amount?: number;
   currency?: string;
+}
+
+interface SquareCustomAttributeValue {
+  name?: string;
+  string_value?: string;
+  number_value?: string;
+  boolean_value?: boolean;
+  selection_uid_values?: string[];
 }
 
 interface SquareCatalogObject {
@@ -37,12 +45,10 @@ interface SquareCatalogObject {
   };
 }
 
-interface SquareCustomAttributeValue {
-  name?: string;
-  string_value?: string;
-  number_value?: string;
-  boolean_value?: boolean;
-  selection_uid_values?: string[];
+interface SquareCatalogResponse {
+  objects?: SquareCatalogObject[];
+  cursor?: string;
+  errors?: Array<{ detail?: string }>;
 }
 
 interface InventoryCount {
@@ -51,21 +57,14 @@ interface InventoryCount {
   quantity?: string;
 }
 
-interface SquareCatalogResponse {
-  objects?: SquareCatalogObject[];
-  cursor?: string;
-  errors?: Array<{ detail?: string }>;
-}
-
 interface SquareInventoryResponse {
   counts?: InventoryCount[];
   cursor?: string;
   errors?: Array<{ detail?: string }>;
 }
 
-export interface ArtworkSourceResult {
+export interface AvailableWorksResult {
   works: Artwork[];
-  source: 'square' | 'fallback';
   error?: string;
 }
 
@@ -165,7 +164,7 @@ function getItemCategoryIds(item: SquareCatalogObject) {
   ].filter(Boolean) as string[];
 }
 
-function shouldIncludeItem(item: SquareCatalogObject, categoryNamesById: Map<string, string>) {
+function shouldIncludeSaleItem(item: SquareCatalogObject, categoryNamesById: Map<string, string>) {
   if (item.type !== 'ITEM' || !item.item_data) return false;
   if (!item.item_data.image_ids?.length) return false;
   if (!item.item_data.variations?.some((variation) => variation.item_variation_data?.sellable !== false)) return false;
@@ -218,52 +217,67 @@ function getCustomValue(
   return undefined;
 }
 
+function splitDescription(description?: string) {
+  return (description ?? '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function inferMedium(description?: string) {
+  return splitDescription(description).find((line) => /oil|acrylic|watercolour|board|canvas|paper/i.test(line));
+}
+
+function inferDimensions(description?: string) {
+  return splitDescription(description).find((line) => /\d+\s*x\s*\d+/i.test(line));
+}
+
 function quantityForVariation(counts: InventoryCount[], variationId: string) {
   return counts
     .filter((count) => count.catalog_object_id === variationId && count.state === 'IN_STOCK')
     .reduce((total, count) => total + Number(count.quantity ?? 0), 0);
 }
 
-function mapSquareItemToArtwork(
+function mapAvailableItemToArtwork(
   item: SquareCatalogObject,
   imageById: Map<string, SquareCatalogObject>,
   counts: InventoryCount[],
 ) {
   const variations = item.item_data?.variations?.filter((variation) => variation.item_variation_data?.sellable !== false) ?? [];
-  const pricedVariation = variations.find((variation) => variation.item_variation_data?.price_money) ?? variations[0];
-  const variationData = pricedVariation?.item_variation_data;
+  const availableVariation = variations.find((variation) => quantityForVariation(counts, variation.id) > 0);
+
+  if (!availableVariation) return undefined;
+
+  const variationData = availableVariation.item_variation_data;
   const imageId = item.item_data?.image_ids?.find((id) => imageById.get(id)?.image_data?.url);
   const imageUrl = imageId ? imageById.get(imageId)?.image_data?.url : undefined;
 
-  if (!imageUrl || !pricedVariation) return undefined;
+  if (!imageUrl || !variationData) return undefined;
 
-  const stockQuantity = variations.reduce(
-    (total, variation) => total + quantityForVariation(counts, variation.id),
-    0,
-  );
-  const isInventoryTracked = variations.some((variation) => variation.item_variation_data?.track_inventory === true);
-  const customSources = [item.item_data?.custom_attribute_values, variationData?.custom_attribute_values];
-  const price = moneyToDisplay(variationData?.price_money);
-  const dimensions = getCustomValue(customSources, ['dimension', 'size']);
-  const medium = getCustomValue(customSources, ['medium', 'material']) ?? 'Oil painting';
+  const customSources = [item.item_data?.custom_attribute_values, variationData.custom_attribute_values];
+  const description = item.item_data?.description;
+  const dimensions =
+    getCustomValue(customSources, ['dimension', 'size']) ?? inferDimensions(description) ?? 'Dimensions available on request';
+  const medium = getCustomValue(customSources, ['medium', 'material']) ?? inferMedium(description) ?? 'Original painting';
+  const stockQuantity = quantityForVariation(counts, availableVariation.id);
 
   return {
     id: item.id,
     title: item.item_data?.name ?? 'Untitled',
     medium,
     year: getCustomValue(customSources, ['year', 'date']) ?? '',
-    dimensions: dimensions ?? 'Dimensions available on request',
-    availability: isInventoryTracked ? (stockQuantity > 0 ? 'Available' : 'Sold') : 'Availability on request',
-    description: item.item_data?.description,
+    dimensions,
+    availability: 'Available',
+    description,
     image: imageUrl,
-    price,
+    price: moneyToDisplay(variationData.price_money),
     stockQuantity,
     squareItemId: item.id,
-    squareVariationId: pricedVariation.id,
+    squareVariationId: availableVariation.id,
   } satisfies Artwork;
 }
 
-export async function getArtworkSource(): Promise<ArtworkSourceResult> {
+export async function getAvailableWorks(): Promise<AvailableWorksResult> {
   try {
     const catalogObjects = await listCatalogObjects(['ITEM', 'IMAGE', 'CATEGORY']);
     const imageById = new Map(catalogObjects.filter((object) => object.type === 'IMAGE').map((image) => [image.id, image]));
@@ -272,45 +286,20 @@ export async function getArtworkSource(): Promise<ArtworkSourceResult> {
         .filter((object) => object.type === 'CATEGORY')
         .map((category) => [category.id, category.category_data?.name ?? '']),
     );
-    const items = catalogObjects.filter((object) => shouldIncludeItem(object, categoryNamesById));
+    const items = catalogObjects.filter((object) => shouldIncludeSaleItem(object, categoryNamesById));
     const variationIds = items.flatMap((item) => item.item_data?.variations?.map((variation) => variation.id) ?? []);
     const inventoryCounts = await retrieveInventoryCounts(variationIds);
     const works = items
-      .map((item) => mapSquareItemToArtwork(item, imageById, inventoryCounts))
+      .map((item) => mapAvailableItemToArtwork(item, imageById, inventoryCounts))
       .filter(Boolean) as Artwork[];
 
-    if (works.length === 0) {
-      return {
-        works: galleryWorks,
-        source: 'fallback',
-        error: 'Square returned no artwork items with images.',
-      };
-    }
-
-    return {
-      works,
-      source: 'square',
-    };
+    return { works };
   } catch (error) {
-    console.error('Square artwork source unavailable:', error);
+    console.error('Square available works unavailable:', error);
 
     return {
-      works: galleryWorks,
-      source: 'fallback',
-      error: error instanceof Error ? error.message : 'Square is temporarily unavailable.',
+      works: [],
+      error: error instanceof Error ? error.message : 'Available works are temporarily unavailable.',
     };
   }
-}
-
-export async function getGalleryWorks() {
-  return getArtworkSource();
-}
-
-export async function getFeaturedWorks() {
-  const result = await getArtworkSource();
-
-  return {
-    ...result,
-    works: result.works.slice(0, 3),
-  };
 }
