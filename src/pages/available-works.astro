@@ -86,6 +86,24 @@ const { works: availableWorks, error } = await getAvailableWorks();
     </div>
   </section>
 
+  <section class="section section--tight purchasing-section" aria-labelledby="purchasing-delivery-title">
+    <div class="container purchasing-section__inner">
+      <h2 class="heading-sm" id="purchasing-delivery-title">Purchasing &amp; Delivery</h2>
+      <div class="purchasing-section__copy">
+        <p>All original paintings are sold unframed unless otherwise stated.</p>
+        <p>
+          If you would prefer your painting framed, please get in touch to discuss the
+          available options and any additional costs.
+        </p>
+        <p>
+          Each painting is carefully packaged for shipping. Please allow additional time for
+          preparation and delivery, particularly for international orders. Shipping costs are
+          calculated separately.
+        </p>
+      </div>
+    </div>
+  </section>
+
   <GalleryLightbox works={availableWorks} enquiryLabel="Inquire about this piece" />
 </BaseLayout>
 
@@ -235,6 +253,35 @@ const { works: availableWorks, error } = await getAvailableWorks();
   .available-empty__note {
     color: var(--color-text-faint);
     font-size: var(--text-sm);
+  }
+
+  .purchasing-section {
+    padding-top: 0;
+  }
+
+  .purchasing-section__inner {
+    max-width: 46rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: clamp(2rem, 5vw, 3rem);
+  }
+
+  .purchasing-section .heading-sm {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-weight: 400;
+  }
+
+  .purchasing-section__copy {
+    display: grid;
+    gap: 0.9rem;
+    margin-top: 1.1rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .purchasing-section__copy p {
+    margin: 0;
   }
 
   @media (min-width: 700px) {
