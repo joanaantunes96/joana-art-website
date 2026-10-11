@@ -19,6 +19,24 @@ const { works: availableWorks, error } = await getAvailableWorks();
     </div>
   </header>
 
+  <section class="section section--tight purchasing-section" aria-labelledby="purchasing-delivery-title">
+    <div class="container purchasing-section__inner">
+      <h2 class="heading-sm" id="purchasing-delivery-title">Purchasing &amp; Delivery</h2>
+      <div class="purchasing-section__copy">
+        <p>All original paintings are sold unframed unless otherwise stated.</p>
+        <p>
+          If you would prefer your painting framed, please get in touch to discuss the
+          available options and any additional costs.
+        </p>
+        <p>
+          Each painting is carefully packaged for shipping. Please allow additional time for
+          preparation and delivery, particularly for international orders. Shipping costs are
+          calculated separately.
+        </p>
+      </div>
+    </div>
+  </section>
+
   <section class="section section--tight available-section">
     <div class="container">
       {
@@ -86,24 +104,6 @@ const { works: availableWorks, error } = await getAvailableWorks();
     </div>
   </section>
 
-  <section class="section section--tight purchasing-section" aria-labelledby="purchasing-delivery-title">
-    <div class="container purchasing-section__inner">
-      <h2 class="heading-sm" id="purchasing-delivery-title">Purchasing &amp; Delivery</h2>
-      <div class="purchasing-section__copy">
-        <p>All original paintings are sold unframed unless otherwise stated.</p>
-        <p>
-          If you would prefer your painting framed, please get in touch to discuss the
-          available options and any additional costs.
-        </p>
-        <p>
-          Each painting is carefully packaged for shipping. Please allow additional time for
-          preparation and delivery, particularly for international orders. Shipping costs are
-          calculated separately.
-        </p>
-      </div>
-    </div>
-  </section>
-
   <GalleryLightbox works={availableWorks} enquiryLabel="Inquire about this piece" />
 </BaseLayout>
 
@@ -129,7 +129,7 @@ const { works: availableWorks, error } = await getAvailableWorks();
   }
 
   .available-section {
-    padding-top: clamp(2.5rem, 6vw, 4rem);
+    padding-top: clamp(2.25rem, 5vw, 3.5rem);
   }
 
   .available__grid {
@@ -257,6 +257,7 @@ const { works: availableWorks, error } = await getAvailableWorks();
 
   .purchasing-section {
     padding-top: 0;
+    padding-bottom: 0;
   }
 
   .purchasing-section__inner {
