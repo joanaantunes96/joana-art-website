@@ -76,10 +76,8 @@ const { works: availableWorks, error } = await getAvailableWorks();
                     )}
                   </dl>
                   <div class="available-card__actions">
-                    {artwork.purchaseUrl && (artwork.stockQuantity ?? 0) > 0 ? (
-                      <a class="available-card__buy" href={artwork.purchaseUrl}>Buy Original</a>
-                    ) : (
-                      <button type="button" class="available-card__buy" disabled>Buy Original</button>
+                    {artwork.purchaseUrl && (artwork.stockQuantity ?? 0) > 0 && (
+                      <a class="available-card__buy" href={`/buy/${encodeURIComponent(artwork.squareItemId!)}`}>Buy Original</a>
                     )}
                     <button
                       type="button"
@@ -225,11 +223,6 @@ const { works: availableWorks, error } = await getAvailableWorks();
     font-weight: 500;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-  }
-
-  .available-card__buy:disabled {
-    opacity: 0.48;
-    cursor: not-allowed;
   }
 
   a.available-card__buy,

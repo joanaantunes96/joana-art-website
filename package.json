@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@astrojs/vercel": "^9.0.5",
-    "astro": "^5.7.0"
+    "astro": "^5.7.0",
+    "fast-xml-parser": "^5.11.2"
   }
 }

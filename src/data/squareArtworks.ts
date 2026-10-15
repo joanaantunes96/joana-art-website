@@ -1,5 +1,5 @@
 import type { Artwork } from './artworks';
-import { squareOnlineProducts } from './squareOnlineProducts';
+import { discoverProductUrls, squareOnline, type SquareSite } from './squareOnline';
 
 const SQUARE_API_BASE = 'https://connect.squareup.com';
 const SQUARE_VERSION = '2026-09-16';
@@ -25,7 +25,6 @@ interface SquareCatalogObject {
     name?: string;
   };
   item_data?: {
-    ecom_uri?: string;
     name?: string;
     description?: string;
     category_id?: string;
@@ -98,6 +97,8 @@ async function squareFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   const response = await fetch(`${SQUARE_API_BASE}${path}`, {
     ...init,
+    cache: 'no-store',
+    signal: AbortSignal.timeout(10000),
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -144,6 +145,7 @@ async function retrieveInventoryCounts(variationIds: string[]) {
     const body: Record<string, unknown> = {
       catalog_object_ids: variationIds,
       states: ['IN_STOCK'],
+      location_ids: [squareOnline.locationId],
     };
 
     if (cursor) body.cursor = cursor;
@@ -235,9 +237,9 @@ function inferDimensions(description?: string) {
   return splitDescription(description).find((line) => /\d+\s*x\s*\d+/i.test(line));
 }
 
-function quantityForVariation(counts: InventoryCount[], variationId: string, locationId?: string) {
+function quantityForVariation(counts: InventoryCount[], variationId: string) {
   return counts
-    .filter((count) => count.catalog_object_id === variationId && count.state === 'IN_STOCK' && (!locationId || count.location_id === locationId))
+    .filter((count) => count.catalog_object_id === variationId && count.state === 'IN_STOCK' && count.location_id === squareOnline.locationId)
     .reduce((total, count) => total + Number(count.quantity ?? 0), 0);
 }
 
@@ -245,10 +247,10 @@ function mapAvailableItemToArtwork(
   item: SquareCatalogObject,
   imageById: Map<string, SquareCatalogObject>,
   counts: InventoryCount[],
+  productUrls: Map<string, string>,
 ) {
-  const product = squareOnlineProducts[item.id];
-  const variations = item.item_data?.variations?.filter((variation) => variation.item_variation_data?.sellable !== false) ?? [];
-  const availableVariation = variations.find((variation) => quantityForVariation(counts, variation.id, product?.locationId) > 0);
+  const variations = item.item_data?.variations?.filter((variation) => !variation.is_deleted && variation.item_variation_data?.sellable !== false) ?? [];
+  const availableVariation = variations.find((variation) => quantityForVariation(counts, variation.id) > 0);
 
   if (!availableVariation) return undefined;
 
@@ -263,7 +265,7 @@ function mapAvailableItemToArtwork(
   const dimensions =
     getCustomValue(customSources, ['dimension', 'size']) ?? inferDimensions(description) ?? 'Dimensions available on request';
   const medium = getCustomValue(customSources, ['medium', 'material']) ?? inferMedium(description) ?? 'Original painting';
-  const stockQuantity = quantityForVariation(counts, availableVariation.id, product?.locationId);
+  const stockQuantity = quantityForVariation(counts, availableVariation.id);
 
   return {
     id: item.id,
@@ -278,7 +280,7 @@ function mapAvailableItemToArtwork(
     stockQuantity,
     squareItemId: item.id,
     squareVariationId: availableVariation.id,
-    purchaseUrl: product?.url,
+    purchaseUrl: productUrls.get(item.id),
   } satisfies Artwork & { purchaseUrl?: string };
 }
 
@@ -294,28 +296,26 @@ export async function getAvailableWorks(): Promise<AvailableWorksResult> {
     const items = catalogObjects.filter((object) => shouldIncludeSaleItem(object, categoryNamesById));
     const variationIds = items.flatMap((item) => item.item_data?.variations?.map((variation) => variation.id) ?? []);
     const inventoryCounts = await retrieveInventoryCounts(variationIds);
-    if (import.meta.env.VERCEL_ENV === 'preview') {
-      try {
-        console.info('Square site verification', JSON.stringify(await squareFetch('/v2/sites')));
-      } catch {
-        console.info('Square site verification unavailable');
-      }
-      console.info('Square product verification', JSON.stringify({
-        items: items.map(item => ({ id: item.id, name: item.item_data?.name, url: item.item_data?.ecom_uri })),
-        counts: inventoryCounts,
-      }));
+    let productUrls = new Map<string, string>();
+    try {
+      const { sites = [] } = await squareFetch<{ sites?: SquareSite[] }>('/v2/sites');
+      const inStockIds = items.filter(item => item.item_data?.variations?.some(variation =>
+        quantityForVariation(inventoryCounts, variation.id) > 0)).map(item => item.id);
+      productUrls = await discoverProductUrls(sites, inStockIds);
+    } catch {
+      console.warn('Square product discovery unavailable; enquiry-only fallback.');
     }
     const works = items
-      .map((item) => mapAvailableItemToArtwork(item, imageById, inventoryCounts))
+      .map((item) => mapAvailableItemToArtwork(item, imageById, inventoryCounts, productUrls))
       .filter(Boolean) as AvailableWorksResult['works'];
 
     return { works };
   } catch (error) {
-    console.error('Square available works unavailable:', error);
+    console.error('Square available works unavailable.');
 
     return {
       works: [],
-      error: error instanceof Error ? error.message : 'Available works are temporarily unavailable.',
+      error: 'Available works are temporarily unavailable.',
     };
   }
 }
