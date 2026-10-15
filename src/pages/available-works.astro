@@ -5,6 +5,7 @@ import { getAvailableWorks } from '../data/squareArtworks';
 
 export const prerender = false;
 
+Astro.response.headers.set('Cache-Control', 'no-store');
 const { works: availableWorks, error } = await getAvailableWorks();
 ---
 
@@ -31,7 +32,7 @@ const { works: availableWorks, error } = await getAvailableWorks();
         <p>
           Each painting is carefully packaged for shipping. Please allow additional time for
           preparation and delivery, particularly for international orders. Shipping costs are
-          calculated separately.
+          calculated and paid at Square checkout.
         </p>
       </div>
     </div>
@@ -75,7 +76,11 @@ const { works: availableWorks, error } = await getAvailableWorks();
                     )}
                   </dl>
                   <div class="available-card__actions">
-                    <button type="button" class="available-card__buy" disabled>Buy Original</button>
+                    {artwork.purchaseUrl && (artwork.stockQuantity ?? 0) > 0 ? (
+                      <a class="available-card__buy" href={artwork.purchaseUrl}>Buy Original</a>
+                    ) : (
+                      <button type="button" class="available-card__buy" disabled>Buy Original</button>
+                    )}
                     <button
                       type="button"
                       class="available-card__enquire"
@@ -106,6 +111,13 @@ const { works: availableWorks, error } = await getAvailableWorks();
 
   <GalleryLightbox works={availableWorks} enquiryLabel="Inquire about this piece" />
 </BaseLayout>
+
+<script>
+  // Recheck inventory when returning from Square via the browser back button.
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) window.location.reload();
+  });
+</script>
 
 <style>
   .available-mast {
@@ -215,11 +227,12 @@ const { works: availableWorks, error } = await getAvailableWorks();
     text-transform: uppercase;
   }
 
-  .available-card__buy {
+  .available-card__buy:disabled {
     opacity: 0.48;
     cursor: not-allowed;
   }
 
+  a.available-card__buy,
   .available-card__enquire {
     cursor: pointer;
     transition:
@@ -227,6 +240,8 @@ const { works: availableWorks, error } = await getAvailableWorks();
       color var(--transition);
   }
 
+  a.available-card__buy:hover,
+  a.available-card__buy:focus-visible,
   .available-card__enquire:hover,
   .available-card__enquire:focus-visible {
     background: var(--color-accent);

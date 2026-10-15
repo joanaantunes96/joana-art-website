@@ -1,4 +1,5 @@
 import type { Artwork } from './artworks';
+import { squareOnlineProducts } from './squareOnlineProducts';
 
 const SQUARE_API_BASE = 'https://connect.squareup.com';
 const SQUARE_VERSION = '2026-09-16';
@@ -24,6 +25,7 @@ interface SquareCatalogObject {
     name?: string;
   };
   item_data?: {
+    ecom_uri?: string;
     name?: string;
     description?: string;
     category_id?: string;
@@ -52,6 +54,7 @@ interface SquareCatalogResponse {
 }
 
 interface InventoryCount {
+  location_id?: string;
   catalog_object_id?: string;
   state?: string;
   quantity?: string;
@@ -64,7 +67,7 @@ interface SquareInventoryResponse {
 }
 
 export interface AvailableWorksResult {
-  works: Artwork[];
+  works: Array<Artwork & { purchaseUrl?: string }>;
   error?: string;
 }
 
@@ -232,9 +235,9 @@ function inferDimensions(description?: string) {
   return splitDescription(description).find((line) => /\d+\s*x\s*\d+/i.test(line));
 }
 
-function quantityForVariation(counts: InventoryCount[], variationId: string) {
+function quantityForVariation(counts: InventoryCount[], variationId: string, locationId?: string) {
   return counts
-    .filter((count) => count.catalog_object_id === variationId && count.state === 'IN_STOCK')
+    .filter((count) => count.catalog_object_id === variationId && count.state === 'IN_STOCK' && (!locationId || count.location_id === locationId))
     .reduce((total, count) => total + Number(count.quantity ?? 0), 0);
 }
 
@@ -243,8 +246,9 @@ function mapAvailableItemToArtwork(
   imageById: Map<string, SquareCatalogObject>,
   counts: InventoryCount[],
 ) {
+  const product = squareOnlineProducts[item.id];
   const variations = item.item_data?.variations?.filter((variation) => variation.item_variation_data?.sellable !== false) ?? [];
-  const availableVariation = variations.find((variation) => quantityForVariation(counts, variation.id) > 0);
+  const availableVariation = variations.find((variation) => quantityForVariation(counts, variation.id, product?.locationId) > 0);
 
   if (!availableVariation) return undefined;
 
@@ -259,7 +263,7 @@ function mapAvailableItemToArtwork(
   const dimensions =
     getCustomValue(customSources, ['dimension', 'size']) ?? inferDimensions(description) ?? 'Dimensions available on request';
   const medium = getCustomValue(customSources, ['medium', 'material']) ?? inferMedium(description) ?? 'Original painting';
-  const stockQuantity = quantityForVariation(counts, availableVariation.id);
+  const stockQuantity = quantityForVariation(counts, availableVariation.id, product?.locationId);
 
   return {
     id: item.id,
@@ -274,7 +278,8 @@ function mapAvailableItemToArtwork(
     stockQuantity,
     squareItemId: item.id,
     squareVariationId: availableVariation.id,
-  } satisfies Artwork;
+    purchaseUrl: product?.url,
+  } satisfies Artwork & { purchaseUrl?: string };
 }
 
 export async function getAvailableWorks(): Promise<AvailableWorksResult> {
@@ -289,9 +294,15 @@ export async function getAvailableWorks(): Promise<AvailableWorksResult> {
     const items = catalogObjects.filter((object) => shouldIncludeSaleItem(object, categoryNamesById));
     const variationIds = items.flatMap((item) => item.item_data?.variations?.map((variation) => variation.id) ?? []);
     const inventoryCounts = await retrieveInventoryCounts(variationIds);
+    if (import.meta.env.VERCEL_ENV === 'preview') {
+      console.info('Square product verification', JSON.stringify({
+        items: items.map(item => ({ id: item.id, name: item.item_data?.name, url: item.item_data?.ecom_uri })),
+        counts: inventoryCounts,
+      }));
+    }
     const works = items
       .map((item) => mapAvailableItemToArtwork(item, imageById, inventoryCounts))
-      .filter(Boolean) as Artwork[];
+      .filter(Boolean) as AvailableWorksResult['works'];
 
     return { works };
   } catch (error) {
