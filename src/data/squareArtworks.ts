@@ -295,6 +295,11 @@ export async function getAvailableWorks(): Promise<AvailableWorksResult> {
     const variationIds = items.flatMap((item) => item.item_data?.variations?.map((variation) => variation.id) ?? []);
     const inventoryCounts = await retrieveInventoryCounts(variationIds);
     if (import.meta.env.VERCEL_ENV === 'preview') {
+      try {
+        console.info('Square site verification', JSON.stringify(await squareFetch('/v2/sites')));
+      } catch {
+        console.info('Square site verification unavailable');
+      }
       console.info('Square product verification', JSON.stringify({
         items: items.map(item => ({ id: item.id, name: item.item_data?.name, url: item.item_data?.ecom_uri })),
         counts: inventoryCounts,
